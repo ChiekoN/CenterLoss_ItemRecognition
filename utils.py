@@ -3,6 +3,9 @@ import tensorflow as tf
 import numpy as np
 from numpy.random import default_rng
 from tensorboard.plugins import projector
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+
 
 image_dir = "image_data"
 
@@ -33,6 +36,54 @@ class tbProjector(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         self.output()
+
+
+
+class PCAPlotter(tf.keras.callbacks.Callback):
+
+    def  __init__(self, model, feature_model, x_test, y_test, epoch, lambda_cl):
+        super(PCAPlotter, self).__init__()
+        self.model = model
+        self.feature_model = feature_model
+        self.x_test = x_test
+        self.y_test = y_test
+        self.y_seq = np.array(list(set(y_test))) # Sequence of unique labels
+        self.fig = plt.figure(figsize=(9, 4))
+        #self.ax = plt.subplot(1, 2, 1)
+        self.epoch = epoch
+        self.lambda_cl = lambda_cl
+        plt.ion()
+        
+        self.save_path = 'results'
+
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
+
+        print('y_seq = {}, len = {}'.format(self.y_seq, self.y_seq.shape))
+
+    def visualize_train(self, feat, centers, cur_epoch):
+        c = ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff',
+            '#ff00ff', '#990000', '#999900', '#009900', '#009999']
+        plt.figure()
+        plt.clf()
+        for i in range(10):
+            plt.plot(feat[self.y_test == self.y_seq[i], 0], feat[self.y_test == self.y_seq[i], 1], '.', c=c[i])
+        plt.plot(centers[self.y_seq, 0], centers[self.y_seq, 1], 'kx', mew=2, ms=4)
+        plt.title('Training data. Lambda_centerloss = {}, Epoch = {}/{}'.format(self.lambda_cl, cur_epoch, self.epoch))
+        plt.legend(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], loc='upper right')
+        plt.savefig('{}/train_plot.png'.format(self.save_path))
+        plt.close()
+
+    def plot_feature_2D(self, epoch):
+        feat = self.feature_model.predict(self.x_test)
+        centers = self.model.get_layer('centerlosslayer').get_weights()[0]
+        pca = PCA(n_components=2)
+        pca_feat = pca.fit_transform(feat)
+        pca_centers = pca.fit_transform(centers)
+        self.visualize_train(pca_feat, pca_centers, epoch)
+
+    def on_epoch_end(self, epoch, logs=None):
+        self.plot_feature_2D(epoch)
 
 
 
@@ -152,7 +203,7 @@ def create_testdata(class_size=10, datadir='test', tblog_dir='.', metadatafile='
         for label in test_data_label:
             f.write("{}\n".format(label))
     
-    return test_data
+    return (test_data, test_data_label)
 
 
 
@@ -163,3 +214,9 @@ def triplet_loss(alpha, emb_dim):
         dn = tf.reduce_mean(tf.square(anc - neg), axis=1)
         return tf.maximum(dp - dn + alpha, 0.)
     return loss
+
+
+
+
+
+
