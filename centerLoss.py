@@ -108,7 +108,7 @@ def my_model(img_input, labels, feat_dim, weight_decay=0.0001):
 
     main = keras.layers.Dense(train_classnum, activation='softmax', name='main_out', kernel_regularizer=l2(weight_decay))(x)
     side = CenterLossLayer(train_classnum, feat_dim, alpha=0.5, name='centerlosslayer')([x, labels])
-    return main, side
+    return main, side, base_model
 
 """
 def my_model(x, labels):
