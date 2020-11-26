@@ -41,7 +41,7 @@ class tbProjector(tf.keras.callbacks.Callback):
 
 class PCAPlotter(tf.keras.callbacks.Callback):
 
-    def  __init__(self, plt, model, feature_model, x_test, y_test, epoch, lambda_cl):
+    def  __init__(self, plt, model, feature_model, x_test, y_test, epoch, lambda_cl, save_path):
         super(PCAPlotter, self).__init__()
         self.model = model
         self.feature_model = feature_model
@@ -54,43 +54,33 @@ class PCAPlotter(tf.keras.callbacks.Callback):
         self.lambda_cl = lambda_cl
         plt.ion()
         
-        self.save_path = 'results'
+        self.save_path = save_path
 
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 
-        print('y_seq = {}, len = {}'.format(self.y_seq, self.y_seq.shape))
+        #print('y_seq = {}, len = {}'.format(self.y_seq, self.y_seq.shape))
 
     def visualize_train(self, feat, centers, cur_epoch):
         c = ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff',
             '#ff00ff', '#990000', '#999900', '#009900', '#009999']
-        #plt.figure()
-        #plt.clf()
+            
         self.ax.clear()
         for i in range(10):
             self.ax.plot(feat[self.y_test == self.y_seq[i], 0], feat[self.y_test == self.y_seq[i], 1], '.', c=c[i])
             self.ax.plot(centers[self.y_seq[i], 0], centers[self.y_seq[i], 1], 'kx', mew=2, ms=4, c=c[i])
-        #self.ax.plot(feat[:, 0], feat[:, 1], '.')
-        #self.ax.plot(centers[self.y_seq, 0], centers[self.y_seq, 1], 'kx', mew=2, ms=4)
+
         self.ax.set_title('Training data. Lambda_centerloss = {}, Epoch = {}/{}'.format(self.lambda_cl, cur_epoch, self.epoch))
         self.fig.canvas.draw()
-
-        #for i in range(10):
-        #    plt.plot(feat[self.y_test == self.y_seq[i], 0], feat[self.y_test == self.y_seq[i], 1], '.', c=c[i])
-        #plt.plot(centers[self.y_seq, 0], centers[self.y_seq, 1], 'kx', mew=2, ms=4)
-        #plt.title('Training data. Lambda_centerloss = {}, Epoch = {}/{}'.format(self.lambda_cl, cur_epoch, self.epoch))
-        #plt.legend(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], loc='upper right')
         plt.savefig('{}/train_plot-e{}.jpg'.format(self.save_path, cur_epoch))
-        #plt.close()
+
 
     def plot_feature_2D(self, epoch):
         feat = self.feature_model.predict(self.x_test)
         centers = self.model.get_layer('centerlosslayer').get_weights()[0]
-        #print("centers.shape = {}".format(centers.shape))
         pca = PCA(n_components=2)
         pca.fit(feat)
         pca_feat = pca.transform(feat)
-        #pca_centers = pca.fit_transform(centers)
         pca_centers = pca.transform(centers)
         self.visualize_train(pca_feat, pca_centers, epoch)
 
