@@ -72,7 +72,7 @@ class PCAPlotter(tf.keras.callbacks.Callback):
 
         self.ax.set_title('Training data. Lambda_centerloss = {}, Epoch = {}/{}'.format(self.lambda_cl, cur_epoch, self.epoch))
         self.fig.canvas.draw()
-        plt.savefig('{}/train_plot-e{}.jpg'.format(self.save_path, cur_epoch))
+        plt.savefig('{}/train_plot-e{:02d}.jpg'.format(self.save_path, cur_epoch))
 
 
     def plot_feature_2D(self, epoch):
