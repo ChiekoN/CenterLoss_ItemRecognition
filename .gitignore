@@ -4,3 +4,4 @@ __pycache__/
 .ipynb_checkpoints/
 results*/
 *.h5
+*.jpg
