@@ -5,3 +5,8 @@ __pycache__/
 results*/
 *.h5
 /*.jpg
+/itemrecognition_center_loss_e10.ipynb
+/itemrecognition_centerloss_evaluate.ipynb
+/itemrecognition_centerloss_evaluate-untrainable.ipynb
+/itemrecognition_centerloss_finetuning.ipynb
+/itemrecognition_center_loss.ipynb
